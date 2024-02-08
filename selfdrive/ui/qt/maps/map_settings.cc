@@ -311,6 +311,14 @@ NavManager::NavManager(QObject *parent) : QObject(parent) {
       });
     }
   }
+
+  // load destinations from file
+  QFile dest_file;
+  dest_file.setFileName("/data/nav_destinations.json");
+  dest_file.open(QIODevice::ReadOnly | QIODevice::Text);
+  QString value = dest_file.readAll();
+  QJsonDocument doc = QJsonDocument::fromJson(value.toUtf8());
+  locations = doc.array();
 }
 
 void NavManager::parseLocationsResponse(const QString &response, bool success) {

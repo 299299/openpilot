@@ -1,0 +1,64 @@
+[
+    {
+        "save_type":"favorite",
+        "label":"home",
+        "place_name":"jiuting",
+        "place_details":"test",
+        "latitude": 31.130406202192237,
+        "longitude": 121.32588580943961
+    },
+
+    {
+        "save_type":"favorite",
+        "label":"work",
+        "place_name":"lmm",
+        "place_details":"test",
+        "latitude": 31.230097605822177,
+        "longitude": 121.31683427793804
+    },
+
+    {
+        "save_type":"favorite",
+        "label":"test",
+        "place_name":"huochezhan",
+        "place_details":"test",
+        "latitude": 31.182083306138477,
+        "longitude": 121.38518518062175
+    },
+
+    {
+        "save_type":"favorite",
+        "label":"test",
+        "place_name":"lmm3",
+        "place_details":"test",
+        "latitude": 31.232903916730358,
+        "longitude": 121.31825620230799
+    },
+
+    {
+        "save_type":"favorite",
+        "label":"test",
+        "place_name":"hexuan lu",
+        "place_details":"jiayouzhan",
+        "latitude": 31.241425143463168,
+        "longitude": 121.32588580943961
+    },
+
+    {
+        "save_type":"favorite",
+        "label":"test",
+        "place_name":"weijing",
+        "place_details":"minhang",
+        "latitude": 31.131627450695074,
+        "longitude": 121.36398500611196
+    },
+
+    {
+        "save_type":"favorite",
+        "label":"test",
+        "place_name":"anting",
+        "place_details":"jiading",
+        "latitude": 31.294659801700906,
+        "longitude": 121.16382355896523
+    }
+]
