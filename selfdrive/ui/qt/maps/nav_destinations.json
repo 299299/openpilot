@@ -11,6 +11,15 @@
     {
         "save_type":"favorite",
         "label":"work",
+        "place_name":"qinpu",
+        "place_details":"qinpu",
+        "latitude": 31.213074,
+        "longitude": 121.252416
+    },
+
+    {
+        "save_type":"favorite",
+        "label":"work",
         "place_name":"lmm",
         "place_details":"test",
         "latitude": 31.230097605822177,
