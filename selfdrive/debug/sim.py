@@ -80,6 +80,7 @@ def shutdown():
     print ("exiting")
     sys.exit(0)
 
+
 def main():
 
     global params
@@ -89,7 +90,6 @@ def main():
     #os.system('service call audio 3 i32 3 i32 0 i32 1')
 
     #params.delete("Offroad_ConnectivityNeeded")
-
     q = Queue()
 
     t = threading.Thread(target=keyboard_poll_thread, args=[q])
@@ -128,7 +128,7 @@ def main():
                 else:
                     left_blinker = 1
 
-                print ('left_blinker=', left_blinker)
+                print('left_blinker=', left_blinker)
                 continue
 
             if message == 'right_light':
@@ -137,7 +137,7 @@ def main():
                 else:
                     right_blinker = 1
 
-                print ('right_blinker=', right_blinker)
+                print('right_blinker=', right_blinker)
                 continue
 
             if message == 'speed_up':
