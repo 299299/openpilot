@@ -224,27 +224,32 @@ class LongitudinalMpc:
         self.mode = mode
         self.dt = dt
         self.solver = AcadosOcpSolverCython(MODEL_NAME, ACADOS_SOLVER_TYPE, N)
-        self.reset()
-        self.source = SOURCES[2]
 
         # golden change
         self.params = Params()
         self.frame = 0
-        self.jerk_factor = params.get("Golden_JerkFactor", block=False)
-        self.stop_distance = params.get("Golden_StopDistance", block=False)
-        self.t_follow = params.get("Golden_TFollow", block=False)
+        self.update_params_now()
+
+        self.reset()
+        self.source = SOURCES[2]
 
     def update_params(self):
         self.frame += 1
+        # print ("self.frame=", self.frame)
         if self.frame >= 100:
-            print('##################### update_params #####################')
-            self.jerk_factor = params.get("Golden_JerkFactor", block=False)
-            self.stop_distance = params.get("Golden_StopDistance", block=False)
-            self.t_follow = params.get("Golden_TFollow", block=False)
-            print('jerk_factor=', self.jerk_factor)
-            print('stop_distance=', self.stop_distance)
-            print('t_follow=', self.t_follow)
+            self.update_params_now()
             self.frame = 0
+
+    def update_params_now(self):
+        print('##################### update_params #####################')
+        self.jerk_factor = float(
+            self.params.get("Golden_JerkFactor", block=False))
+        self.stop_distance = float(
+            self.params.get("Golden_StopDistance", block=False))
+        self.t_follow = float(self.params.get("Golden_TFollow", block=False))
+        print('jerk_factor=', self.jerk_factor)
+        print('stop_distance=', self.stop_distance)
+        print('t_follow=', self.t_follow)
 
     def reset(self):
         # self.solver = AcadosOcpSolverCython(MODEL_NAME, ACADOS_SOLVER_TYPE, N)
