@@ -12,9 +12,9 @@ from openpilot.selfdrive.modeld.constants import index_function
 from openpilot.selfdrive.controls.radard import _LEAD_ACCEL_TAU
 
 if __name__ == '__main__':  # generating code
-    from openpilot.third_party.acados.acados_template import AcadosModel, AcadosOcp, AcadosOcpSolver
+  from openpilot.third_party.acados.acados_template import AcadosModel, AcadosOcp, AcadosOcpSolver
 else:
-    from openpilot.selfdrive.controls.lib.longitudinal_mpc_lib.c_generated_code.acados_ocp_solver_pyx import AcadosOcpSolverCython
+  from openpilot.selfdrive.controls.lib.longitudinal_mpc_lib.c_generated_code.acados_ocp_solver_pyx import AcadosOcpSolverCython
 
 from casadi import SX, vertcat
 
@@ -226,7 +226,7 @@ class LongitudinalMpc:
         self.solver = AcadosOcpSolverCython(MODEL_NAME, ACADOS_SOLVER_TYPE, N)
 
         # golden change
-        self.params = Params()
+        self.param_db = Params()
         self.frame = 0
         self.update_params_now()
 
@@ -241,15 +241,15 @@ class LongitudinalMpc:
             self.frame = 0
 
     def update_params_now(self):
-        print('##################### update_params #####################')
+        #print('##################### update_params #####################')
         self.jerk_factor = float(
-            self.params.get("Golden_JerkFactor", block=False))
+            self.param_db.get("Golden_JerkFactor", block=False))
         self.stop_distance = float(
-            self.params.get("Golden_StopDistance", block=False))
-        self.t_follow = float(self.params.get("Golden_TFollow", block=False))
-        print('jerk_factor=', self.jerk_factor)
-        print('stop_distance=', self.stop_distance)
-        print('t_follow=', self.t_follow)
+            self.param_db.get("Golden_StopDistance", block=False))
+        self.t_follow = float(self.param_db.get("Golden_TFollow", block=False))
+        #print('jerk_factor=', self.jerk_factor)
+        #print('stop_distance=', self.stop_distance)
+        #print('t_follow=', self.t_follow)
 
     def reset(self):
         # self.solver = AcadosOcpSolverCython(MODEL_NAME, ACADOS_SOLVER_TYPE, N)
@@ -516,6 +516,6 @@ class LongitudinalMpc:
 
 
 if __name__ == "__main__":
-    ocp = gen_long_ocp()
-    AcadosOcpSolver.generate(ocp, json_file=JSON_FILE)
-    # AcadosOcpSolver.build(ocp.code_export_directory, with_cython=True)
+  ocp = gen_long_ocp()
+  AcadosOcpSolver.generate(ocp, json_file=JSON_FILE)
+  # AcadosOcpSolver.build(ocp.code_export_directory, with_cython=True)
