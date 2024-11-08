@@ -83,13 +83,19 @@ function launch {
 
   # start manager
   cd system/manager
-  if [ ! -f $DIR/prebuilt ]; then
+
+
+  if [[ -z "${BUILD_TEST}" ]]; then
+    if [ ! -f $DIR/prebuilt ]; then
+      ./build.py
+    fi
+    ./manager.py
+    # if broken, keep on screen error
+    while true; do sleep 1; done
+  else
+    echo 'just do build test'
     ./build.py
   fi
-  ./manager.py
-
-  # if broken, keep on screen error
-  while true; do sleep 1; done
 }
 
 launch
