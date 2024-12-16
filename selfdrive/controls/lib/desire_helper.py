@@ -40,6 +40,13 @@ class DesireHelper:
     self.prev_one_blinker = False
     self.desire = log.Desire.none
 
+    # golden change
+    from openpilot.common.params import Params
+    self.param_db = Params()
+    self.frame = 0
+    self.update_params_now()
+    self.desire_1 = log.Desire.none
+
   def update(self, carstate, lateral_active, lane_change_prob):
     v_ego = carstate.vEgo
     one_blinker = carstate.leftBlinker != carstate.rightBlinker
@@ -112,3 +119,49 @@ class DesireHelper:
         self.keep_pulse_timer = 0.0
       elif self.desire in (log.Desire.keepLeft, log.Desire.keepRight):
         self.desire = log.Desire.none
+
+    # golden change
+    self.update_smart_desire(carstate)
+
+  # golden change
+  def update_smart_desire(self, carstate):
+      self.frame += 1
+      #print ("self.frame=", self.frame)
+      if self.frame >= 100:
+          self.update_params_now()
+          self.frame = 0
+
+      v_ego = carstate.vEgo
+      one_blinker = carstate.leftBlinker != carstate.rightBlinker
+      left_on = carstate.leftBlinker
+      right_on = carstate.rightBlinker
+      no_bliker = not left_on and not right_on
+
+      right_on = True
+      one_blinker = True
+
+      self.desire_1 = self.desire
+      if v_ego < LANE_CHANGE_SPEED_MIN:
+        if one_blinker:
+          if left_on:
+            self.desire_1 = log.Desire.turnLeft
+          if right_on:
+            self.desire_1 = log.Desire.turnRight
+      else:
+        if no_bliker:
+          if self.smart_desire == 1:
+            self.desire_1 = log.Desire.keepLeft
+          if self.smart_desire == 2:
+            self.desire_1 = log.Desire.keepRight
+
+      #print ('self.desire_1=', self.desire_1)
+
+  def update_params_now(self):
+    #print('##################### update_params #####################')
+    self.smart_desire = int(float(self.param_db.get("Golden_SmartDesire", block=False)))
+    #print ('smart_desire=', self.smart_desire)
+
+  def get_desire(self):
+    if self.smart_desire == 0:
+      return self.desire
+    return self.desire_1
