@@ -98,3 +98,4 @@ private:
   Params params;
   ParamWatcher *fs_watch;
 };
+
