@@ -200,6 +200,12 @@ std::unordered_map<std::string, uint32_t> keys = {
     {"UpdaterTargetBranch", CLEAR_ON_MANAGER_START},
     {"UpdaterLastFetchTime", PERSISTENT},
     {"Version", PERSISTENT},
+
+    // golden change
+    {"Golden_StopDistance", PERSISTENT},
+    {"Golden_JerkFactor", PERSISTENT},
+    {"Golden_TFollow", PERSISTENT},
+    {"Golden_SmartDesire", PERSISTENT},
 };
 
 } // namespace
