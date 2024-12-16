@@ -22,4 +22,5 @@ private:
   bool is_metric = false;
   bool v_ego_cluster_seen = false;
   int status = STATUS_DISENGAGED;
+  float leading_dist = -1.0F;
 };
