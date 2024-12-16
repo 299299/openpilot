@@ -2,6 +2,7 @@
 
 #include <string>
 #include <vector>
+#include <sstream>
 
 #include <QButtonGroup>
 #include <QFrame>
@@ -187,7 +188,8 @@ class ButtonParamControl : public AbstractControl {
   Q_OBJECT
 public:
   ButtonParamControl(const QString &param, const QString &title, const QString &desc, const QString &icon,
-                     const std::vector<QString> &button_texts, const int minimum_button_width = 225) : AbstractControl(title, desc, icon) {
+                     const std::vector<QString> &button_texts, const int minimum_button_width = 225)
+                     : AbstractControl(title, desc, icon) {
     const QString style = R"(
       QPushButton {
         border-radius: 50px;
@@ -293,4 +295,103 @@ public:
   LayoutWidget(QLayout *l, QWidget *parent = nullptr) : QWidget(parent) {
     setLayout(l);
   }
+};
+
+// golden change
+class ButtonParamControl2 : public AbstractControl {
+  Q_OBJECT
+public:
+  ButtonParamControl2(const QString &param,
+                      float _default_value,
+                      const QString &desc,
+                      const QString &icon,
+                      float _gap = 0.1F,
+                      const int minimum_button_width = 225) : AbstractControl(param, desc, icon) {
+    key = param.toStdString();
+    default_value = _default_value;
+    gap = _gap;
+
+    const QString style = R"(
+      QPushButton {
+        border-radius: 50px;
+        font-size: 40px;
+        font-weight: 500;
+        height:100px;
+        padding: 0 25 0 25;
+        color: #E4E4E4;
+        background-color: #393939;
+      }
+      QPushButton:pressed {
+        background-color: #4a4a4a;
+      }
+      QPushButton:checked:enabled {
+        background-color: #33Ab4C;
+      }
+      QPushButton:disabled {
+        color: #33E4E4E4;
+      }
+    )";
+    button_group = new QButtonGroup(this);
+    button_group->setExclusive(true);
+
+    QString button_texts[3] = {tr("+"), tr("-"), tr("reset")};
+    for (int i = 0; i < 3; i++) {
+      QPushButton *button = new QPushButton(button_texts[i], this);
+      button->setCheckable(false);
+      button->setChecked(false);
+      button->setStyleSheet(style);
+      button->setMinimumWidth(minimum_button_width);
+      hlayout->addWidget(button);
+      button_group->addButton(button, i);
+    }
+
+    auto val = params.get(key);
+    if (val.empty())
+    {
+      params.put(key, std::to_string(default_value));
+      value = default_value;
+    }
+    else
+    {
+      value = std::stof(val);
+    }
+
+    UpdateTitle();
+
+    QObject::connect(button_group, QOverload<int>::of(&QButtonGroup::buttonClicked), [=](int id) {
+      if (id == 0)
+      {
+        value += gap;
+      }
+      else if (id == 1)
+      {
+        value -= gap;
+      }
+      else if (id == 2)
+      {
+        value = default_value;
+      }
+
+      UpdateTitle();
+      params.put(key, std::to_string(value));
+    });
+  }
+
+private:
+  void UpdateTitle()
+  {
+    std::stringstream ss;
+    ss.precision(2);
+    ss << value;
+    QString title = tr(key.c_str()) + tr(":") + tr(ss.str().c_str());
+    setTitle(title);
+  }
+
+private:
+  QButtonGroup *button_group;
+  float value;
+  float default_value;
+  Params params;
+  std::string key;
+  float gap;
 };
