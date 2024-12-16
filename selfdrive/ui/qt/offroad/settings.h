@@ -72,6 +72,10 @@ private:
   std::map<std::string, ParamControl*> toggles;
   ButtonParamControl *long_personality_setting;
 
+  // golden change
+  ButtonParamControl2 *stop_distance_setting;
+  ButtonParamControl2 *jerk_factor_setting;
+  ButtonParamControl2 *t_follow_setting;
   void updateToggles();
 };
 
@@ -96,3 +100,4 @@ private:
   Params params;
   ParamWatcher *fs_watch;
 };
+
