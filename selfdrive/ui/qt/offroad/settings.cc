@@ -93,6 +93,27 @@ TogglesPanel::TogglesPanel(SettingsWindow *parent) : ListWidget(parent) {
   // Toggles with confirmation dialogs
   toggles["ExperimentalMode"]->setActiveIcon("../assets/img_experimental.svg");
   toggles["ExperimentalMode"]->setConfirmation(true, true);
+
+  // golden change
+  auto stop_distance_setting = new ButtonParamControl2("Golden_StopDistance", 5.0F,
+                                        tr("StopDistance control, + will inscreate 0.1m, - will decrease 0.1m"),
+                                        "../assets/offroad/icon_speed_limit.png");
+  addItem(stop_distance_setting);
+
+  auto jerk_factor_setting = new ButtonParamControl2("Golden_JerkFactor", 0.5F,
+                                        tr("JerkFactor control, + will inscreate 0.1, - will decrease 0.1"),
+                                        "../assets/offroad/icon_speed_limit.png");
+  addItem(jerk_factor_setting);
+
+  auto t_follow_setting = new ButtonParamControl2("Golden_TFollow", 0.8F,
+                                        tr("TFollow control, + will inscreate 0.1s, - will decrease 0.1s"),
+                                        "../assets/offroad/icon_speed_limit.png");
+  addItem(t_follow_setting);
+
+  auto t_desire = new ButtonParamControl2("Golden_SmartDesire", 0,
+                                        tr("Smart Desire, + will inscreate 1, - will decrease 1"),
+                                        "../assets/img_experimental.svg", 1.0F);
+  addItem(t_desire);
 }
 
 void TogglesPanel::updateState(const UIState &s) {

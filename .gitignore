@@ -104,3 +104,5 @@ Pipfile
 # Ignore all local history of files
 .history
 .ionide
+
+selfdrive/ui/translations/*.ts
