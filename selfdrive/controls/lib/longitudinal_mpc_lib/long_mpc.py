@@ -58,32 +58,33 @@ STOP_DISTANCE = 6.0
 CRUISE_MIN_ACCEL = -1.2
 CRUISE_MAX_ACCEL = 1.6
 
-def get_jerk_factor(personality=log.LongitudinalPersonality.standard):
+
+def get_jerk_factor(personality=log.LongitudinalPersonality.standard, base_value=0.5):
   if personality==log.LongitudinalPersonality.relaxed:
-    return 1.0
+    return base_value
   elif personality==log.LongitudinalPersonality.standard:
-    return 1.0
+    return base_value
   elif personality==log.LongitudinalPersonality.aggressive:
-    return 0.5
+    return base_value
   else:
     raise NotImplementedError("Longitudinal personality not supported")
 
 
-def get_T_FOLLOW(personality=log.LongitudinalPersonality.standard):
+def get_T_FOLLOW(personality=log.LongitudinalPersonality.standard, base_value=0.8):
   if personality==log.LongitudinalPersonality.relaxed:
-    return 1.75
+    return base_value + 0.2
   elif personality==log.LongitudinalPersonality.standard:
-    return 1.45
+    return base_value + 0.1
   elif personality==log.LongitudinalPersonality.aggressive:
-    return 1.25
+    return base_value
   else:
     raise NotImplementedError("Longitudinal personality not supported")
 
 def get_stopped_equivalence_factor(v_lead):
   return (v_lead**2) / (2 * COMFORT_BRAKE)
 
-def get_safe_obstacle_distance(v_ego, t_follow):
-  return (v_ego**2) / (2 * COMFORT_BRAKE) + t_follow * v_ego + STOP_DISTANCE
+def get_safe_obstacle_distance(v_ego, t_follow, stop_distance=STOP_DISTANCE):
+  return (v_ego**2) / (2 * COMFORT_BRAKE) + t_follow * v_ego + stop_distance
 
 def desired_follow_distance(v_ego, v_lead, t_follow=None):
   if t_follow is None:
@@ -223,6 +224,13 @@ def gen_long_ocp():
 
 class LongitudinalMpc:
   def __init__(self, mode='acc', dt=DT_MDL):
+
+    # golden change
+    from openpilot.common.params import Params
+    self.param_db = Params()
+    self.frame = 0
+    self.update_params_now()
+
     self.mode = mode
     self.dt = dt
     self.solver = AcadosOcpSolverCython(MODEL_NAME, ACADOS_SOLVER_TYPE, N)
@@ -275,7 +283,7 @@ class LongitudinalMpc:
       self.solver.cost_set(i, 'Zl', Zl)
 
   def set_weights(self, prev_accel_constraint=True, personality=log.LongitudinalPersonality.standard):
-    jerk_factor = get_jerk_factor(personality)
+    jerk_factor = get_jerk_factor(personality, self.jerk_factor)
     if self.mode == 'acc':
       a_change_cost = A_CHANGE_COST if prev_accel_constraint else 0
       cost_weights = [X_EGO_OBSTACLE_COST, X_EGO_COST, V_EGO_COST, A_EGO_COST, jerk_factor * a_change_cost, jerk_factor * J_EGO_COST]
@@ -328,7 +336,7 @@ class LongitudinalMpc:
     return lead_xv
 
   def update(self, radarstate, v_cruise, x, v, a, j, personality=log.LongitudinalPersonality.standard):
-    t_follow = get_T_FOLLOW(personality)
+    t_follow = get_T_FOLLOW(personality, self.t_follow)
     v_ego = self.x0[1]
     self.status = radarstate.leadOne.status or radarstate.leadTwo.status
 
@@ -356,7 +364,7 @@ class LongitudinalMpc:
       v_cruise_clipped = np.clip(v_cruise * np.ones(N+1),
                                  v_lower,
                                  v_upper)
-      cruise_obstacle = np.cumsum(T_DIFFS * v_cruise_clipped) + get_safe_obstacle_distance(v_cruise_clipped, t_follow)
+      cruise_obstacle = np.cumsum(T_DIFFS * v_cruise_clipped) + get_safe_obstacle_distance(v_cruise_clipped, t_follow, self.stop_distance)
       x_obstacles = np.column_stack([lead_0_obstacle, lead_1_obstacle, cruise_obstacle])
       self.source = SOURCES[np.argmin(x_obstacles[0])]
 
@@ -402,11 +410,14 @@ class LongitudinalMpc:
     # Check if it got within lead comfort range
     # TODO This should be done cleaner
     if self.mode == 'blended':
-      if any((lead_0_obstacle - get_safe_obstacle_distance(self.x_sol[:,1], t_follow))- self.x_sol[:,0] < 0.0):
+      if any((lead_0_obstacle - get_safe_obstacle_distance(self.x_sol[:,1], t_follow, self.stop_distance))- self.x_sol[:,0] < 0.0):
         self.source = 'lead0'
-      if any((lead_1_obstacle - get_safe_obstacle_distance(self.x_sol[:,1], t_follow))- self.x_sol[:,0] < 0.0) and \
+      if any((lead_1_obstacle - get_safe_obstacle_distance(self.x_sol[:,1], t_follow, self.stop_distance))- self.x_sol[:,0] < 0.0) and \
          (lead_1_obstacle[0] - lead_0_obstacle[0]):
         self.source = 'lead1'
+
+    # golden change
+    self.update_params()
 
   def run(self):
     # t0 = time.monotonic()
@@ -450,6 +461,24 @@ class LongitudinalMpc:
     # print(f"long_mpc timings: total internal {self.solve_time:.2e}, external: {(time.monotonic() - t0):.2e} qp {self.time_qp_solution:.2e}, \
     # lin {self.time_linearization:.2e} qp_iter {qp_iter}, reset {reset}")
 
+  # golden change
+  def update_params(self):
+      self.frame += 1
+      # print ("self.frame=", self.frame)
+      if self.frame >= 500:
+          self.update_params_now()
+          self.frame = 0
+
+  def update_params_now(self):
+    print('##################### update_params #####################')
+    self.jerk_factor = float(
+        self.param_db.get("Golden_JerkFactor", block=False))
+    self.stop_distance = float(
+        self.param_db.get("Golden_StopDistance", block=False))
+    self.t_follow = float(self.param_db.get("Golden_TFollow", block=False))
+    print('jerk_factor=', self.jerk_factor)
+    print('stop_distance=', self.stop_distance)
+    print('t_follow=', self.t_follow)
 
 if __name__ == "__main__":
   ocp = gen_long_ocp()

@@ -12,17 +12,30 @@ import requests
 
 import openpilot.system.updated.casync.casync as casync
 
+from requests.adapters import HTTPAdapter
+from urllib3.response import HTTPResponse
+
 SPARSE_CHUNK_FMT = struct.Struct('H2xI4x')
 CAIBX_URL = "https://commadist.azureedge.net/agnosupdate/"
 
 AGNOS_MANIFEST_FILE = "system/hardware/tici/agnos.json"
 
+class FileAdapter(HTTPAdapter):
+    def send(self, request, *args, **kwargs):
+        resp = HTTPResponse(body=open(request.url[7:], 'rb'), status=200, preload_content=False)
+        return self.build_response(request, resp)
 
 class StreamingDecompressor:
   def __init__(self, url: str) -> None:
     self.buf = b""
 
-    self.req = requests.get(url, stream=True, headers={'Accept-Encoding': None}, timeout=60)
+    if url.startswith('http'):
+      self.req = requests.get(url, stream=True, headers={'Accept-Encoding': None}, timeout=60)
+    else:
+      session = requests.Session()
+      session.mount('file://', FileAdapter())
+      self.req = session.get(url)
+
     self.it = self.req.iter_content(chunk_size=1024 * 1024)
     self.decompressor = lzma.LZMADecompressor(format=lzma.FORMAT_AUTO)
     self.eof = False
